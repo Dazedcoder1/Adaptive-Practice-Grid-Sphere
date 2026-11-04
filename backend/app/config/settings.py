@@ -60,6 +60,11 @@ class Settings(BaseSettings):
     smtp_password: str = ""
     smtp_starttls: bool = True
 
+    # Process outbox events in the API process right after commit, so mastery, revision and
+    # the error notebook update even when no Celery worker is running (local development).
+    # Set false in production and run the workers; the outbox + idempotency make both safe.
+    process_events_inline: bool = True
+
     # Rate limits ("count/seconds")
     rate_limit_login: str = "10/60"
     rate_limit_register: str = "5/60"

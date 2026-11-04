@@ -5,7 +5,7 @@ from fastapi import APIRouter, Request
 from app.config.database import DbSession, transaction
 from app.modules.identity.models import User
 from app.modules.users import service
-from app.modules.users.schemas import DeletionStatus, ProfileOut, ProfileUpdate
+from app.modules.users.schemas import DeletionStatus, Onboarding, ProfileOut, ProfileUpdate
 from app.shared.permissions import CurrentStudent
 from app.shared.request import client_ip
 
@@ -14,6 +14,7 @@ router = APIRouter(prefix="/students", tags=["students"])
 
 def _out(db, user: User) -> ProfileOut:
     p = service.require_profile(db, user.id)
+    prefs = p.preferences or {}
     return ProfileOut(
         user_id=user.id,
         email=user.email,
@@ -25,7 +26,21 @@ def _out(db, user: User) -> ProfileOut:
         study_mode=p.study_mode,
         deletion_requested_at=user.deletion_requested_at,
         created_at=user.created_at,
+        curriculum_id=p.curriculum_id,
+        curriculum_name=_curriculum_name(db, p.curriculum_id),
+        subject_ids=prefs.get("subject_ids", []),
+        goals=prefs.get("goals", []),
+        target_exam_date=p.target_exam_date,
+        weekly_days=(prefs.get("schedule") or {}).get("weekly_days"),
+        minutes_per_day=(prefs.get("schedule") or {}).get("minutes_per_day"),
     )
+
+
+def _curriculum_name(db, curriculum_id):
+    from app.modules.curriculum.models import Curriculum
+
+    c = db.get(Curriculum, curriculum_id) if curriculum_id else None
+    return c.name if c else None
 
 
 @router.get("/me", response_model=ProfileOut)
@@ -57,3 +72,11 @@ def cancel_deletion(request: Request, p: CurrentStudent, db: DbSession):
     with transaction(db):
         service.cancel_account_deletion(db, db.get(User, p.user_id), client_ip(request))
     return DeletionStatus(deletion_requested_at=None, message="Deletion request cancelled.")
+
+
+@router.put("/me/onboarding", response_model=ProfileOut)
+def onboarding(body: Onboarding, p: CurrentStudent, db: DbSession):
+    """Set or change study mode, curriculum, subjects, goals and schedule preference."""
+    with transaction(db):
+        service.save_onboarding(db, p.user_id, **body.model_dump())
+    return _out(db, db.get(User, p.user_id))

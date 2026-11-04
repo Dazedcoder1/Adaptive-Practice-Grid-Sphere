@@ -15,6 +15,7 @@ celery_app = Celery(
         "app.workers.attempt",
         "app.workers.mastery",
         "app.workers.revision",
+        "app.workers.notebook",
         "app.workers.analytics",
     ],
 )

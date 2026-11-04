@@ -20,7 +20,7 @@ CONSUMERS: dict[str, list[str]] = {
     EventType.QUESTION_ANSWERED: [
         "app.workers.mastery.on_question_answered",
         "app.workers.revision.on_question_answered",
-        "app.workers.analytics.on_question_answered",
+        "app.workers.notebook.on_question_answered",
     ],
     EventType.TEST_COMPLETED: ["app.workers.analytics.on_test_completed"],
 }

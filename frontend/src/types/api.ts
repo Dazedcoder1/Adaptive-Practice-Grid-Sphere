@@ -34,6 +34,13 @@ export type SessionInfo = {
 };
 
 export type StudentProfile = {
+  curriculum_id: number | null;
+  curriculum_name: string | null;
+  subject_ids: number[];
+  goals: string[];
+  target_exam_date: string | null;
+  weekly_days: number | null;
+  minutes_per_day: number | null;
   user_id: string;
   email: string;
   display_name: string;
@@ -57,6 +64,13 @@ export type PlatformStats = {
   failed_logins_24h: number;
   failed_jobs: number;
   outbox_backlog: number;
+  questions_total: number;
+  questions_published: number;
+  approval_backlog: number;
+  practice_sessions_7d: number;
+  questions_attempted_7d: number;
+  concepts_total: number;
+  concepts_with_questions: number;
   generated_at: string;
 };
 

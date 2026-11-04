@@ -1,10 +1,11 @@
-import type { Metadata } from "next";
-import { PlannedFeature } from "@/components/feedback/planned-feature";
-import { adminPlanned } from "@/features/planned/catalog";
-
-const entry = adminPlanned["questions"];
-export const metadata: Metadata = { title: entry.title };
+import { Suspense } from "react";
+import { LoadingState } from "@/components/feedback/states";
+import { QuestionList } from "@/features/admin/question-list";
 
 export default function Page() {
-  return <PlannedFeature {...entry} />;
+  return (
+    <Suspense fallback={<LoadingState />}>
+      <QuestionList />
+    </Suspense>
+  );
 }

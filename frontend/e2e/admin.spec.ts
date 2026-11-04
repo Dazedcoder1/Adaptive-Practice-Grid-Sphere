@@ -18,11 +18,11 @@ test("super admin sees real stats, suspends and reactivates a student", async ({
   await student.getByLabel("Email").fill(studentEmail);
   await student.getByLabel("Password", { exact: true }).fill(PASSWORD);
   await student.getByRole("button", { name: "Sign in" }).click();
-  await expect(student).toHaveURL(/\/dashboard$/);
+  await expect(student).toHaveURL(/\/(dashboard|onboarding)$/);
 
   // Students can't use the admin portal.
   await student.goto("/admin");
-  await expect(student).toHaveURL(/\/dashboard$/);
+  await expect(student).toHaveURL(/\/(dashboard|onboarding)$/);
 
   await page.goto("/admin/login");
   await page.getByLabel("Email").fill(adminEmail);

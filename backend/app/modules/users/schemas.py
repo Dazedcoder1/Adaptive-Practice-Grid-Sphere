@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime
+from datetime import date, datetime
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -17,6 +17,13 @@ class ProfileOut(BaseModel):
     study_mode: str | None
     deletion_requested_at: datetime | None
     created_at: datetime
+    curriculum_id: int | None = None
+    curriculum_name: str | None = None
+    subject_ids: list[int] = []
+    goals: list[str] = []
+    target_exam_date: date | None = None
+    weekly_days: int | None = None
+    minutes_per_day: int | None = None
 
 
 class ProfileUpdate(BaseModel):
@@ -27,3 +34,13 @@ class ProfileUpdate(BaseModel):
 class DeletionStatus(BaseModel):
     deletion_requested_at: datetime | None
     message: str
+
+
+class Onboarding(BaseModel):
+    study_mode: str = Field(pattern="^(school|jee|neet)$")
+    curriculum_id: int
+    subject_ids: list[int] = Field(min_length=1, max_length=20)
+    goals: list[str] = Field(default_factory=list, max_length=5)
+    target_exam_date: date | None = None
+    weekly_days: int | None = Field(default=None, ge=1, le=7)
+    minutes_per_day: int | None = Field(default=None, ge=10, le=600)

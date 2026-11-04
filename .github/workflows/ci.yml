@@ -110,6 +110,7 @@ jobs:
         run: |
           pip install -r requirements.txt
           alembic upgrade head
+          python -m scripts.seed_sample_content
           nohup uvicorn app.main:app --port 8000 > api.log 2>&1 &
       - name: Build and start web
         working-directory: frontend

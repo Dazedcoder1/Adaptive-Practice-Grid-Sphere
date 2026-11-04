@@ -1,10 +1,7 @@
-import type { Metadata } from "next";
-import { PlannedFeature } from "@/components/feedback/planned-feature";
-import { studentPlanned } from "@/features/planned/catalog";
+"use client";
 
-const entry = studentPlanned["error-notebook"];
-export const metadata: Metadata = { title: entry.title };
+import { ErrorNotebookPage } from "@/features/learning/review-pages";
 
 export default function Page() {
-  return <PlannedFeature {...entry} />;
+  return <ErrorNotebookPage />;
 }

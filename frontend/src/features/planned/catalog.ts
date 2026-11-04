@@ -1,18 +1,11 @@
 import {
-  Activity,
   BarChart3,
-  BookOpen,
   Bot,
   BrainCircuit,
   CalendarClock,
   ClipboardList,
-  FileQuestion,
   FileText,
-  GraduationCap,
-  NotebookPen,
-  RotateCcw,
   SlidersHorizontal,
-  Target,
   Trophy,
   type LucideIcon,
 } from "lucide-react";
@@ -20,48 +13,6 @@ import {
 type Entry = { title: string; icon: LucideIcon; phase: string; description: string; capabilities: string[] };
 
 export const studentPlanned: Record<string, Entry> = {
-  learn: {
-    title: "Learn",
-    icon: BookOpen,
-    phase: "Phase 1",
-    description: "Concept explanations you can work through on your own, mapped to your syllabus.",
-    capabilities: [
-      "Concept explanation pages and learning notes",
-      "Worked examples with step-by-step solutions",
-      "Equations (KaTeX), diagrams and images",
-      "Prerequisite explanations and related concepts",
-      "Practice straight after learning",
-      "Mark a concept as completed",
-    ],
-  },
-  curriculum: {
-    title: "My Curriculum",
-    icon: GraduationCap,
-    phase: "Phase 1",
-    description: "Your syllabus as Board/Exam \u2192 Class \u2192 Subject \u2192 Chapter \u2192 Topic \u2192 Concept.",
-    capabilities: [
-      "Browse subjects, chapters and concepts",
-      "Search the curriculum",
-      "See prerequisites for each concept",
-      "Chapter completion and concept mastery",
-      "Continue where you left off",
-      "Versioned syllabi",
-    ],
-  },
-  practice: {
-    title: "Adaptive Practice",
-    icon: Target,
-    phase: "Phase 1",
-    description: "Questions chosen for you from your current knowledge state, evaluated on the server.",
-    capabilities: [
-      "Dynamic, concept-based question selection",
-      "Gradual difficulty adjustment",
-      "Immediate feedback, hints and explanations",
-      "Pause, resume and recover sessions",
-      "All 8 question types incl. numerical and match-the-following",
-      "Attempt history and session reports",
-    ],
-  },
   tutor: {
     title: "AI Tutor",
     icon: Bot,
@@ -87,43 +38,6 @@ export const studentPlanned: Record<string, Entry> = {
       "Previous test history",
     ],
   },
-  revision: {
-    title: "Revision Centre",
-    icon: RotateCcw,
-    phase: "Phase 1",
-    description: "Spaced repetition scheduled from your own learning evidence.",
-    capabilities: [
-      "Daily revision queue",
-      "Weak-concept revision",
-      "Flashcards",
-      "Retention estimates",
-      "Revision reminders",
-    ],
-  },
-  "weak-topics": {
-    title: "Weak Topics",
-    icon: Activity,
-    phase: "Phase 1",
-    description: "Concepts your knowledge model says need work, with a reason for each.",
-    capabilities: [
-      "Ranked weak concepts with explanations",
-      "Prerequisite gaps highlighted",
-      "One-click targeted practice",
-    ],
-  },
-  "error-notebook": {
-    title: "Error Notebook",
-    icon: NotebookPen,
-    phase: "Phase 1",
-    description: "Every mistake saved, categorised and ready to re-attempt.",
-    capabilities: [
-      "Auto-saved incorrect questions",
-      "Save difficult questions manually",
-      "Categorise mistakes",
-      "Review explanations and re-attempt",
-      "Track improvement over time",
-    ],
-  },
   analytics: {
     title: "Performance Analytics",
     icon: BarChart3,
@@ -146,19 +60,6 @@ export const studentPlanned: Record<string, Entry> = {
 };
 
 export const adminPlanned: Record<string, Entry> = {
-  curriculum: {
-    title: "Curriculum Management",
-    icon: GraduationCap,
-    phase: "Phase 1",
-    description: "Manage boards, exams, classes, subjects, chapters, topics, concepts and prerequisites.",
-    capabilities: [
-      "Boards, classes and competitive exams",
-      "Subjects \u2192 chapters \u2192 topics \u2192 concepts",
-      "Prerequisite graph",
-      "Syllabus versions",
-      "Import and export",
-    ],
-  },
   content: {
     title: "Learning Content",
     icon: FileText,
@@ -170,19 +71,6 @@ export const adminPlanned: Record<string, Entry> = {
       "Map content to concepts",
       "Edit with version history",
       "Publish and archive",
-    ],
-  },
-  questions: {
-    title: "Question Bank",
-    icon: FileQuestion,
-    phase: "Phase 1",
-    description: "Versioned questions with a proper approval lifecycle.",
-    capabilities: [
-      "All 8 question types",
-      "Difficulty, concept mapping, hints, sources",
-      "Preview exactly as students see it",
-      "Bulk import with validation",
-      "Draft \u2192 review \u2192 approve \u2192 publish",
     ],
   },
   exams: {

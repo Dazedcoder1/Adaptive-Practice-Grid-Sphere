@@ -25,6 +25,13 @@ class PlatformStats(BaseModel):
     failed_logins_24h: int
     failed_jobs: int
     outbox_backlog: int
+    questions_total: int
+    questions_published: int
+    approval_backlog: int
+    practice_sessions_7d: int
+    questions_attempted_7d: int
+    concepts_total: int
+    concepts_with_questions: int
     generated_at: datetime
 
 

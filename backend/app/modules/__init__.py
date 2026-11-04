@@ -9,6 +9,7 @@ from app.modules.ai_tutor.router import router as ai_tutor
 from app.modules.analytics.router import router as analytics
 from app.modules.assessment.router import router as assessment
 from app.modules.audit.router import router as audit
+from app.modules.curriculum.admin_router import router as curriculum_admin
 from app.modules.curriculum.router import router as curriculum
 from app.modules.error_notebook.router import router as error_notebook
 from app.modules.gamification.router import router as gamification
@@ -33,6 +34,7 @@ for r in (
     assessment,
     audit,
     curriculum,
+    curriculum_admin,
     error_notebook,
     gamification,
     identity,

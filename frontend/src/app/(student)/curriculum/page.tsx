@@ -1,10 +1,7 @@
-import type { Metadata } from "next";
-import { PlannedFeature } from "@/components/feedback/planned-feature";
-import { studentPlanned } from "@/features/planned/catalog";
+"use client";
 
-const entry = studentPlanned["curriculum"];
-export const metadata: Metadata = { title: entry.title };
+import { CurriculumPage } from "@/features/learning/curriculum-page";
 
 export default function Page() {
-  return <PlannedFeature {...entry} />;
+  return <CurriculumPage />;
 }

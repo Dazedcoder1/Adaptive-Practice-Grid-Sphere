@@ -19,3 +19,12 @@ export function formatRelative(value: string | null | undefined) {
   if (diff < 86400) return rtf.format(-Math.round(diff / 3600), "hour");
   return rtf.format(-Math.round(diff / 86400), "day");
 }
+
+/** "due now", "due in 5 h", "due tomorrow", "due in 4 days". */
+export function formatDue(value: string) {
+  const hours = (new Date(value).getTime() - Date.now()) / 3_600_000;
+  if (hours <= 0) return "due now";
+  if (hours < 20) return `due in ${Math.max(1, Math.round(hours))} h`;
+  const days = Math.round(hours / 24);
+  return days <= 1 ? "due tomorrow" : `due in ${days} days`;
+}

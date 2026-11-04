@@ -11,13 +11,23 @@ Two portals only: the **Student Portal** and the **Super Admin Portal** (no teac
 | Phase | Scope | State |
 |---|---|---|
 | 0 — Foundation | Structure, Docker, DB + migrations, auth, RBAC, audit, CI | ✅ Done |
-| 1 — MVP | Curriculum, content, question bank, onboarding, diagnostics, practice engine, BKT, revision, mock tests, analytics | Planned |
+| 1a — First milestone | Curriculum, question bank + approval, onboarding, diagnostic + adaptive practice, BKT knowledge model, session reports, revision, error notebook, real dashboard | ✅ Done |
+| 1b — Rest of MVP | Mock exams (timers, negative marking), analytics page, achievements/XP, learning-content editor, curriculum editor UI | Planned |
 | 2 — AI | AI Tutor, RAG (pgvector), AI question generation | Planned |
 
 Planned modules appear in both portals' navigation marked **Soon**, with a page describing exactly
 what will ship. Nothing shows fabricated data.
 
 ### What works now
+
+- **Learning loop (Phase 1a)**: onboarding (School / JEE / NEET → syllabus → subjects → goals →
+  study rhythm), My Curriculum with per-concept mastery, concept pages with prerequisites, diagnostic
+  and adaptive practice for all 9 question types (KaTeX maths, hints, server-side marking, solutions,
+  "why this question"), pause/resume, session reports, spaced-repetition revision, weak topics and an
+  error notebook with re-attempts. Mastery uses versioned Bayesian Knowledge Tracing (`bkt-v1`);
+  question selection is foundations-first with controlled exploration, and every choice is stored.
+- **Admin content**: question bank with filters, an editor for every type with live preview, versioning
+  (edits never change past attempts) and draft → review → publish; curriculum tree with export.
 
 - **Student**: register (with guardian-consent flow for under-18s), email verification, sign in,
   silent session restore, profile & timezone, change/reset password, signed-in devices (revoke
@@ -64,6 +74,17 @@ docker compose run --rm backend python -m scripts.create_superadmin --email you@
 Web http://localhost:3000 · API docs http://localhost:8000/api/v1/docs ·
 Admin http://localhost:3000/admin/login
 
+### Sample content
+
+Practice needs published questions. Load the sample (CBSE Class 11 Physics — Laws of Motion, 11
+concepts, 38 questions, every answer checked) once:
+
+```bash
+cd backend && python -m scripts.seed_sample_content
+```
+
+It's flagged as sample content and safe to run twice. Edit or archive it from the admin question bank.
+
 ### Native (Windows PowerShell shown)
 
 ```powershell
@@ -73,6 +94,7 @@ cd backend
 python -m venv .venv; .\.venv\Scripts\Activate.ps1
 pip install -r requirements-dev.txt
 alembic upgrade head
+python -m scripts.seed_sample_content
 python -m scripts.create_superadmin --email you@example.com
 uvicorn app.main:app --reload
 

@@ -69,7 +69,7 @@ function Sidebar({
         })}
       </nav>
       <div className="text-navy-foreground/60 border-t border-white/5 p-4 text-xs">
-        {portal === "admin" ? "Super Admin Portal" : "Student Portal"} · Phase 0
+        {portal === "admin" ? "Super Admin Portal" : "Student Portal"} · Phase 1
       </div>
     </div>
   );
