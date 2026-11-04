@@ -111,7 +111,7 @@ jobs:
           pip install -r requirements.txt
           alembic upgrade head
           python -m scripts.seed_sample_content
-          nohup uvicorn app.main:app --port 8000 > api.log 2>&1 &
+          nohup uvicorn app.main:app --host 127.0.0.1 --port 8000 > api.log 2>&1 &
       - name: Build and start web
         working-directory: frontend
         run: |
@@ -119,10 +119,18 @@ jobs:
           npx playwright install --with-deps chromium
           npm run build
           nohup npm start -- -p 3000 > web.log 2>&1 &
-          npx --yes wait-on -t 60000 http://localhost:3000 http://localhost:8000/api/v1/health
+          # 127.0.0.1, not localhost: Node resolves localhost to IPv6 (::1) first on the runners.
+          npx --yes wait-on -t 60000 http://127.0.0.1:3000 http://127.0.0.1:8000/api/v1/health
       - name: Playwright
         working-directory: frontend
+        env:
+          E2E_API_URL: http://127.0.0.1:8000
         run: npm run test:e2e
+      - name: Server logs
+        if: failure()
+        run: |
+          echo "── API ──"; tail -n 80 backend/api.log || true
+          echo "── Web ──"; tail -n 40 frontend/web.log || true
       - if: failure()
         uses: actions/upload-artifact@v4
         with:
