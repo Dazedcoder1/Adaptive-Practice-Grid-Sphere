@@ -1,0 +1,114 @@
+# AdaptiveLearn AI
+
+Self-paced, adaptive learning platform for Classes 6–12, JEE and NEET aspirants.
+Modular monolith: **FastAPI** backend, **Next.js 16** frontend, **PostgreSQL (Neon)**, **Redis**,
+**Celery**, **Cloudflare R2**, Docker, Nginx.
+
+Two portals only: the **Student Portal** and the **Super Admin Portal** (no teacher portal).
+
+## Status
+
+| Phase | Scope | State |
+|---|---|---|
+| 0 — Foundation | Structure, Docker, DB + migrations, auth, RBAC, audit, CI | ✅ Done |
+| 1 — MVP | Curriculum, content, question bank, onboarding, diagnostics, practice engine, BKT, revision, mock tests, analytics | Planned |
+| 2 — AI | AI Tutor, RAG (pgvector), AI question generation | Planned |
+
+Planned modules appear in both portals' navigation marked **Soon**, with a page describing exactly
+what will ship. Nothing shows fabricated data.
+
+### What works now
+
+- **Student**: register (with guardian-consent flow for under-18s), email verification, sign in,
+  silent session restore, profile & timezone, change/reset password, signed-in devices (revoke
+  one / sign out everywhere), account-deletion request.
+- **Super Admin**: separate sign-in, live platform stats, system health, user search/filter/paging,
+  user detail, suspend/activate (takes effect instantly), audit log, login activity, roles &
+  permissions, failed background jobs.
+- **Platform**: Argon2id, rotating refresh tokens with reuse detection, per-request session checks,
+  rate limiting, append-only audit log, transactional outbox with idempotent consumers, retries
+  and dead-lettering.
+
+## Layout
+
+```
+backend/              FastAPI app
+  app/config/         settings, database, redis, security
+  app/modules/        20 domain modules (identity, users, administration, security, audit, … )
+  app/shared/         exceptions, middleware, permissions, events (outbox)
+  app/workers/        Celery app, outbox relay, consumers
+  app/integrations/   email, storage (R2), llm, embeddings
+  migrations/         Alembic
+  tests/              pytest (real Postgres + Redis)
+  scripts/            check_db, check_r2, create_superadmin
+frontend/             Next.js app (App Router, Tailwind, shadcn-style UI, TanStack Query, Zustand,
+                      React Hook Form + Zod, Framer Motion)
+  src/app/            (auth)/ · (student)/ · admin/(portal)/ · admin/login
+  e2e/                Playwright
+infra/nginx/          reverse proxy config
+docs/operations.md    admins, migrations, backups/restore, background jobs, security notes
+```
+
+## Setup
+
+`.env` at the repo root is read by the backend and Docker Compose (copy `.env.example`).
+`frontend/.env.local` sets `NEXT_PUBLIC_API_URL`.
+
+### Docker (everything)
+
+```bash
+docker compose up --build
+docker compose run --rm backend python -m scripts.create_superadmin --email you@example.com
+```
+
+Web http://localhost:3000 · API docs http://localhost:8000/api/v1/docs ·
+Admin http://localhost:3000/admin/login
+
+### Native (Windows PowerShell shown)
+
+```powershell
+docker compose up -d redis
+
+cd backend
+python -m venv .venv; .\.venv\Scripts\Activate.ps1
+pip install -r requirements-dev.txt
+alembic upgrade head
+python -m scripts.create_superadmin --email you@example.com
+uvicorn app.main:app --reload
+
+# workers (optional until features emit events)
+celery -A app.workers.celery_app worker -Q default,ai,analytics -l info --pool=solo
+celery -A app.workers.celery_app beat -l info
+
+cd ..\frontend
+npm install
+npm run dev
+```
+
+With `EMAIL_BACKEND=console` (default), verification / reset / consent emails are printed in the
+**backend terminal** — copy the link from there.
+
+## Tests
+
+```bash
+# backend — needs a throwaway local Postgres + Redis (never your real DB; conftest refuses)
+cd backend
+$env:TEST_DATABASE_URL="postgresql://postgres:postgres@localhost:5432/ap_test"   # PowerShell
+pytest
+
+# frontend unit/component
+cd frontend
+npm test
+
+# end-to-end: run the API with ENVIRONMENT=test against a throwaway DB, the web app on :3000, then
+npx playwright install chromium
+npm run test:e2e
+```
+
+CI (GitHub Actions) runs lint, format, type-check, migrations (up/down/check), backend tests,
+frontend tests, build, and the Playwright suite.
+
+## API
+
+Versioned REST under `/api/v1` — browse `/api/v1/docs`. Errors are always
+`{"error": {"code", "message", "fields"?}}`.

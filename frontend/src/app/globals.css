@@ -1,0 +1,93 @@
+@import "tailwindcss";
+
+/* AdaptiveLearn AI design tokens — premium educational SaaS: clean light surfaces,
+   deep navy sidebar, purple → blue accents, rounded cards. */
+:root {
+  --background: #f7f8fc;
+  --foreground: #0f172a;
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --muted: #f1f3f9;
+  --muted-foreground: #5b6478;
+  --border: #e3e7f0;
+  --input: #d9deea;
+  --ring: #7c5cff;
+
+  --primary: #6d4aff; /* purple */
+  --primary-foreground: #ffffff;
+  --accent: #3b82f6; /* blue */
+  --accent-foreground: #ffffff;
+  --success: #12a46b;
+  --warning: #d48806;
+  --destructive: #e5484d;
+  --destructive-foreground: #ffffff;
+
+  --navy: #0d1630;
+  --navy-2: #131e3f;
+  --navy-3: #1c2850;
+  --navy-foreground: #c9d1ea;
+
+  --radius: 0.875rem;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-navy: var(--navy);
+  --color-navy-2: var(--navy-2);
+  --color-navy-3: var(--navy-3);
+  --color-navy-foreground: var(--navy-foreground);
+
+  --radius-sm: calc(var(--radius) - 6px);
+  --radius-md: calc(var(--radius) - 4px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-geist-sans), system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+}
+
+@utility bg-brand-gradient {
+  background-image: linear-gradient(135deg, #6d4aff 0%, #3b82f6 100%);
+}
+@utility text-brand-gradient {
+  background-image: linear-gradient(135deg, #6d4aff 0%, #3b82f6 100%);
+  background-clip: text;
+  color: transparent;
+}
+@utility bg-soft-gradient {
+  background-image:
+    radial-gradient(60rem 30rem at 10% -10%, rgb(109 74 255 / 0.12), transparent 60%),
+    radial-gradient(50rem 30rem at 100% 0%, rgb(59 130 246 / 0.12), transparent 60%);
+}

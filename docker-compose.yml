@@ -1,0 +1,68 @@
+# Local development stack (design §13). PostgreSQL is Neon (managed) — not run here.
+#   docker compose up --build           → everything
+#   docker compose up redis             → just Redis, if you run the API/frontend natively
+#   docker compose --profile proxy up   → also Nginx on :8080 serving web + API on one origin
+
+x-backend: &backend
+  build: ./backend
+  env_file: .env
+  environment:
+    REDIS_URL: redis://redis:6379/0
+  depends_on:
+    redis:
+      condition: service_healthy
+  restart: unless-stopped
+
+services:
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      retries: 10
+
+  migrate:
+    <<: *backend
+    command: alembic upgrade head
+    restart: "no"
+
+  backend:
+    <<: *backend
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    volumes: ["./backend:/app"]
+    ports: ["8000:8000"]
+    depends_on:
+      redis: { condition: service_healthy }
+      migrate: { condition: service_completed_successfully }
+
+  worker-default:
+    <<: *backend
+    command: celery -A app.workers.celery_app worker -Q default -n default@%h -l info
+
+  worker-ai:
+    <<: *backend
+    command: celery -A app.workers.celery_app worker -Q ai -n ai@%h -l info --concurrency 2
+
+  worker-analytics:
+    <<: *backend
+    command: celery -A app.workers.celery_app worker -Q analytics -n analytics@%h -l info
+
+  scheduler:
+    <<: *backend
+    command: celery -A app.workers.celery_app beat -l info --schedule /tmp/celerybeat-schedule
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:8000
+    ports: ["3000:3000"]
+    depends_on: [backend]
+
+  nginx:
+    image: nginx:1.27-alpine
+    profiles: [proxy]
+    volumes: ["./infra/nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro"]
+    ports: ["8080:80"]
+    depends_on: [frontend, backend]
