@@ -98,3 +98,24 @@ def update(
         e.status = status
         e.resolved_at = datetime.now(UTC) if status == EntryStatus.RESOLVED else None
     return e
+
+
+def mistake_summary(db: Session, student_id: uuid.UUID, concept_id: int) -> dict[str, int]:
+    """Mistake categories the student has recorded on this concept's questions — evidence
+    the AI tutor may use. Only categories the student chose; uncategorised are counted too."""
+    from sqlalchemy import func
+
+    from app.modules.question_bank.models import QuestionConcept
+
+    rows = db.execute(
+        select(ErrorNotebookEntry.category, func.count())
+        .join(QuestionConcept, QuestionConcept.question_id == ErrorNotebookEntry.question_id)
+        .where(
+            ErrorNotebookEntry.student_id == student_id,
+            ErrorNotebookEntry.source == "mistake",
+            ErrorNotebookEntry.status == EntryStatus.OPEN,
+            QuestionConcept.concept_id == concept_id,
+        )
+        .group_by(ErrorNotebookEntry.category)
+    ).all()
+    return {c.value: n for c, n in rows}

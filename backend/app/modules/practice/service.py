@@ -349,6 +349,55 @@ def reveal_hint(
     return {"hints": v.hints[: sq.hints_revealed], "hints_available": len(v.hints)}
 
 
+def tutor_context(db: Session, student_id: uuid.UUID, sq_id: uuid.UUID) -> dict:
+    """What the AI tutor may know about a delivered question (object-level checked).
+
+    Before the student answers: the question as they see it and the hints they've opened —
+    never the answer key or solution. After answering: their response, the evaluation,
+    the correct answer and the worked solution.
+    """
+    sq = db.get(SessionQuestion, sq_id)
+    if sq is None:
+        raise NotFound("Question not found.")
+    s = get_owned(db, student_id, sq.session_id)
+    v = db.get(QuestionVersion, sq.question_version_id)
+    q = db.get(Question, sq.question_id)
+    out = {
+        "session_question_id": sq.id,
+        "session_id": s.id,
+        "session_active": s.status == SessionStatus.ACTIVE,
+        "question_id": q.id,
+        "type": v.type.value,
+        "stem": v.stem,
+        "content": ev.student_content(v.type, v.content),
+        "hints_shown": v.hints[: sq.hints_revealed],
+        "hints_remaining": max(len(v.hints) - sq.hints_revealed, 0),
+        "concept_ids": [c.concept_id for c in q.concepts],
+        "target_concept_id": sq.target_concept_id,
+        "answered": sq.attempt_id is not None,
+        # Server-side only: lets the tutor's output check catch a leaked answer.
+        "_answer_key": v.answer,
+    }
+    if sq.attempt_id:
+        a = db.get(QuestionAttempt, sq.attempt_id)
+        result = ev.evaluate(v.type, v.content, v.answer, a.response)
+        out.update(
+            response=a.response,
+            evaluation=a.evaluation.value,
+            correct_answer=result.correct_answer,
+            solution=v.solution,
+        )
+    return out
+
+
+def record_tutor_assist(db: Session, student_id: uuid.UUID, sq_id: uuid.UUID) -> None:
+    sq = db.scalar(select(SessionQuestion).where(SessionQuestion.id == sq_id).with_for_update())
+    if sq is None or sq.attempt_id is not None:
+        return
+    get_owned(db, student_id, sq.session_id)
+    sq.tutor_assists += 1
+
+
 # ── submitting an answer ─────────────────────────────────────────────────────
 
 
@@ -410,7 +459,7 @@ def submit_answer(
         is_correct=result.is_correct,
         score=result.score,
         time_taken_seconds=taken,
-        hints_used=sq.hints_revealed,
+        hints_used=sq.hints_revealed + min(sq.tutor_assists, 2),
         difficulty_at_delivery=v.difficulty,
         attempt_number=previous + 1,
         created_at=now,

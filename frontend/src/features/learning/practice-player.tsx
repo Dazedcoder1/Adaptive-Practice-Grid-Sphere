@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowRight,
   BookmarkPlus,
+  Bot,
   CheckCircle2,
   Info,
   Lightbulb,
@@ -28,7 +29,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { ApiError } from "@/services/api";
 import type { Delivery, Feedback, Response } from "@/types/learning";
+import { PracticeTutor } from "@/features/tutor/practice-tutor";
 import { learning } from "./api";
+import { useStartSession } from "./use-start-session";
 
 type Active = Extract<Delivery, { finished: false }>;
 
@@ -113,6 +116,14 @@ export function PracticePlayer({ sessionId }: { sessionId: string }) {
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [hints, setHints] = useState<string[]>([]);
   const keys = useRef(new Map<string, string>()); // session question → idempotency key (stable across retries)
+  const [tutorOpen, setTutorOpen] = useState(false);
+  const startSession = useStartSession();
+  // The tutor (notes mode) can open an authored hint; show it on the question too.
+  const refreshHints = useCallback(() => {
+    void learning.next(sessionId).then((d) => {
+      if (!d.finished) setHints(d.question.hints);
+    });
+  }, [sessionId]);
 
   const session = useQuery({ queryKey: ["session", sessionId], queryFn: () => learning.session(sessionId) });
   const status = session.data?.status;
@@ -325,7 +336,15 @@ export function PracticePlayer({ sessionId }: { sessionId: string }) {
             {feedback && <FeedbackPanel fb={feedback} />}
 
             <div className="flex flex-wrap items-center justify-between gap-3 border-t pt-4">
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  variant={tutorOpen ? "secondary" : "outline"}
+                  size="sm"
+                  aria-expanded={tutorOpen}
+                  onClick={() => setTutorOpen((o) => !o)}
+                >
+                  <Bot /> Ask tutor
+                </Button>
                 {!feedback && q.hints_available > hints.length && (
                   <Button variant="outline" size="sm" loading={hint.isPending} onClick={() => hint.mutate()}>
                     <Lightbulb /> Hint ({hints.length + 1} of {q.hints_available})
@@ -368,6 +387,18 @@ export function PracticePlayer({ sessionId }: { sessionId: string }) {
             )}
           </CardContent>
         </Card>
+      )}
+      {q && tutorOpen && (
+        <PracticeTutor
+          key={delivery!.session_question_id} // a new question starts a new conversation
+          sessionQuestionId={delivery!.session_question_id}
+          answered={!!feedback}
+          wrong={feedback?.evaluation === "incorrect" || feedback?.evaluation === "partial"}
+          conceptId={q.concepts[0]?.id}
+          onClose={() => setTutorOpen(false)}
+          onHintShown={refreshHints}
+          onPractise={(id) => startSession.mutate({ mode: "topic", concept_ids: [id] })}
+        />
       )}
       <p className="text-muted-foreground mt-3 text-center text-xs">Press Enter to submit or continue.</p>
     </div>

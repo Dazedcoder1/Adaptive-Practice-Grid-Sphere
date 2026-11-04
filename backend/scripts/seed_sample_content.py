@@ -1,5 +1,6 @@
-"""Load SAMPLE content: classes 6–12, CBSE / JEE Main / NEET, and a published CBSE Class 11
-Physics curriculum (Laws of Motion) with ~35 published questions.
+"""Load SAMPLE content: classes 6–12, CBSE / JEE Main / NEET, a published CBSE Class 11
+Physics curriculum (Laws of Motion) with ~35 published questions, and approved study notes
+the AI tutor retrieves and cites.
 
     python -m scripts.seed_sample_content
 
@@ -7,7 +8,9 @@ Safe to run more than once — it skips anything that already exists. Everything
 as sample content; archive or edit it in the admin portal.
 """
 
+import hashlib
 import sys
+from pathlib import Path
 
 from sqlalchemy import select
 
@@ -58,6 +61,7 @@ def seed(db) -> dict:
     by_code = dict(
         db.execute(select(Concept.code, Concept.id).where(Concept.id.in_(concept_ids))).all()
     )
+    created["notes"] = seed_notes(db, cur)
     if qbank.published_counts(db, concept_ids):
         return created  # questions already loaded
     for q in QUESTIONS:
@@ -77,6 +81,53 @@ def seed(db) -> dict:
         qbank.publish(db, question, None, note="sample content")
         created["questions"] += 1
     return created
+
+
+NOTES = [
+    ("notes_kinematics.md", "Motion in a Straight Line — study notes", "Motion in a Straight Line"),
+    ("notes_laws_of_motion.md", "Laws of Motion — study notes", "Laws of Motion"),
+]
+
+
+def seed_notes(db, cur: Curriculum) -> int:
+    """Approved study notes for retrieval. Skips files already uploaded (same content)."""
+    from app.modules.curriculum.models import Chapter
+    from app.modules.rag import service as rag
+    from app.modules.rag.models import Licence, RagDocument, SourceType
+
+    subject = db.scalar(
+        select(Subject).where(Subject.curriculum_id == cur.id, Subject.code == "PHY")
+    )
+    added = 0
+    for file_name, title, chapter_name in NOTES:
+        data = (Path(__file__).resolve().parents[1] / "app" / "seed" / file_name).read_bytes()
+        if db.scalar(
+            select(RagDocument.id).where(
+                RagDocument.content_hash == hashlib.sha256(data).hexdigest()
+            )
+        ):
+            continue
+        chapter = db.scalar(
+            select(Chapter).where(Chapter.subject_id == subject.id, Chapter.name == chapter_name)
+        )
+        doc = rag.create_document(
+            db,
+            actor=None,
+            file_name=file_name,
+            data=data,
+            title=title,
+            curriculum_id=cur.id,
+            subject_id=subject.id,
+            chapter_id=chapter.id if chapter else None,
+            source_type=SourceType.NOTES,
+            licence=Licence.OWNED,
+            licence_note="Written for AdaptiveLearn sample content.",
+            is_sample=True,
+        )
+        rag.approve(db, doc, None)
+        rag.embed_document(db, doc.id)  # no-op until an embedding provider is set up
+        added += 1
+    return added
 
 
 def main() -> int:

@@ -110,6 +110,11 @@ class SessionQuestion(Base):
         DateTime(timezone=True), default=_now, nullable=False
     )
     hints_revealed: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    # Hint-style help from the AI tutor before answering. Counts like a hint, so an
+    # assisted correct answer is weaker evidence of mastery.
+    tutor_assists: Mapped[int] = mapped_column(
+        Integer, default=0, server_default="0", nullable=False
+    )
     attempt_id: Mapped[uuid.UUID | None] = mapped_column(
         ForeignKey("question_attempts.id", use_alter=True, name="fk_session_questions_attempt")
     )

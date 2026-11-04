@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, ArrowRight, BookOpen, Lock, Target } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookOpen, Bot, Lock, Target } from "lucide-react";
 import Link from "next/link";
 import { ErrorState, LoadingState } from "@/components/feedback/states";
 import { Markdown } from "@/components/questions/markdown";
@@ -56,14 +56,21 @@ export function ConceptPage({ id }: { id: number }) {
           <h1 className="text-2xl font-semibold tracking-tight">{c.name}</h1>
           <p className="text-muted-foreground mt-1 text-sm">{c.topic.name}</p>
         </div>
-        <Button
-          variant="gradient"
-          disabled={c.question_count === 0}
-          loading={start.isPending}
-          onClick={() => start.mutate({ mode: "adaptive", concept_ids: [c.id] })}
-        >
-          <Target /> Practise this concept
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button asChild variant="outline">
+            <Link href={`/tutor?concept=${c.id}&mode=teach`}>
+              <Bot /> Ask the tutor
+            </Link>
+          </Button>
+          <Button
+            variant="gradient"
+            disabled={c.question_count === 0}
+            loading={start.isPending}
+            onClick={() => start.mutate({ mode: "adaptive", concept_ids: [c.id] })}
+          >
+            <Target /> Practise this concept
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[1fr_20rem]">

@@ -22,7 +22,7 @@ jobs:
         working-directory: backend
     services:
       postgres:
-        image: postgres:16
+        image: pgvector/pgvector:pg16 # Postgres 16 with the vector extension
         env:
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: ap_test
@@ -77,7 +77,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres:16
+        image: pgvector/pgvector:pg16 # Postgres 16 with the vector extension
         env:
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: ap_e2e

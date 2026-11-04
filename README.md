@@ -13,7 +13,8 @@ Two portals only: the **Student Portal** and the **Super Admin Portal** (no teac
 | 0 — Foundation | Structure, Docker, DB + migrations, auth, RBAC, audit, CI | ✅ Done |
 | 1a — First milestone | Curriculum, question bank + approval, onboarding, diagnostic + adaptive practice, BKT knowledge model, session reports, revision, error notebook, real dashboard | ✅ Done |
 | 1b — Rest of MVP | Mock exams (timers, negative marking), analytics page, achievements/XP, learning-content editor, curriculum editor UI | Planned |
-| 2 — AI | AI Tutor, RAG (pgvector), AI question generation | Planned |
+| 2a — AI tutor + RAG | Five-mode tutor, document ingestion, pgvector hybrid retrieval with citations, guardrails, prompts, limits, usage | ✅ Done |
+| 2b — AI content | AI question generation (draft → validation → review → approval), misconception detection | Planned |
 
 Planned modules appear in both portals' navigation marked **Soon**, with a page describing exactly
 what will ship. Nothing shows fabricated data.
@@ -28,6 +29,16 @@ what will ship. Nothing shows fabricated data.
   question selection is foundations-first with controlled exploration, and every choice is stored.
 - **Admin content**: question bank with filters, an editor for every type with live preview, versioning
   (edits never change past attempts) and draft → review → publish; curriculum tree with export.
+- **AI tutor (Phase 2a)**: Teach me · Give a hint · Solve with me · Test me · Find my mistake, on its own
+  page and beside every practice question. Answers are grounded in approved study material and cite it.
+  Before a student answers, the tutor never receives the answer key, and a reply that gives the answer
+  away is caught and replaced; tutor help counts like a hint for mastery. Prompt-injection fencing, a
+  wellbeing check, per-student and platform limits. **Without an API key it still works**: answers come
+  from approved study notes, authored hints and worked solutions, clearly labelled.
+- **AI admin**: provider status and live test, model / limits / prices / retrieval / retention settings,
+  document upload (PDF, DOCX, Markdown, text) → review passages and concept mapping → approve, a
+  retrieval playground with score breakdowns, retrieval evaluation (hit rate, MRR), versioned prompts,
+  and usage, cost and guardrail reports.
 
 - **Student**: register (with guardian-consent flow for under-18s), email verification, sign in,
   silent session restore, profile & timezone, change/reset password, signed-in devices (revoke
@@ -84,6 +95,23 @@ cd backend && python -m scripts.seed_sample_content
 ```
 
 It's flagged as sample content and safe to run twice. Edit or archive it from the admin question bank.
+It also loads approved study notes for the two sample chapters, which the AI tutor retrieves and cites.
+
+### AI tutor (optional)
+
+The tutor works without any AI provider (notes mode). To switch the AI on, add to `.env` and restart
+the API:
+
+```bash
+LLM_PROVIDER=openai          # or gemini, anthropic, openai_compatible
+LLM_API_KEY=...
+EMBEDDING_PROVIDER=openai    # optional: semantic search (openai or gemini); blank = keyword search
+```
+
+Then check **Admin → AI & RAG**: the provider shows *Ready*, and *Test chat* makes a tiny live call.
+Set your provider's prices there to see cost estimates, and press **Embed** on each document once
+embeddings are switched on. Retrieval needs the `vector` extension — Neon has it; the migration
+enables it.
 
 ### Native (Windows PowerShell shown)
 
@@ -126,6 +154,9 @@ npm test
 npx playwright install chromium
 npm run test:e2e
 ```
+
+The test Postgres needs pgvector (`pgvector/pgvector:pg16` in Docker, or `postgresql-16-pgvector`).
+AI tests use an offline stand-in provider, so they never call a real API or need a key.
 
 CI (GitHub Actions) runs lint, format, type-check, migrations (up/down/check), backend tests,
 frontend tests, build, and the Playwright suite.

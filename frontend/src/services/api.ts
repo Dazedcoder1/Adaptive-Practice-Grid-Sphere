@@ -37,18 +37,19 @@ async function raw<T>(path: string, options: Options = {}): Promise<T> {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { body, idempotencyKey, headers, noRetry, ...init } = options;
   const token = useAuthStore.getState().accessToken;
+  const isForm = typeof FormData !== "undefined" && body instanceof FormData; // file uploads
   let res: Response;
   try {
     res = await fetch(`${API_URL}${PREFIX}${path}`, {
       ...init,
       credentials: path.startsWith("/auth") ? "include" : "omit",
       headers: {
-        ...(body !== undefined && { "Content-Type": "application/json" }),
+        ...(body !== undefined && !isForm && { "Content-Type": "application/json" }),
         ...(token && { Authorization: `Bearer ${token}` }),
         ...(idempotencyKey && { "Idempotency-Key": idempotencyKey }),
         ...headers,
       },
-      body: body === undefined ? undefined : JSON.stringify(body),
+      body: body === undefined ? undefined : isForm ? body : JSON.stringify(body),
     });
   } catch {
     throw new ApiError(0, "network_error", "Can't reach the server. Check your connection and try again.");

@@ -1,10 +1,14 @@
 import type { Metadata } from "next";
-import { PlannedFeature } from "@/components/feedback/planned-feature";
-import { studentPlanned } from "@/features/planned/catalog";
+import { Suspense } from "react";
+import { LoadingState } from "@/components/feedback/states";
+import { TutorPage } from "@/features/tutor/tutor-page";
 
-const entry = studentPlanned["tutor"];
-export const metadata: Metadata = { title: entry.title };
+export const metadata: Metadata = { title: "AI Tutor" };
 
 export default function Page() {
-  return <PlannedFeature {...entry} />;
+  return (
+    <Suspense fallback={<LoadingState />}>
+      <TutorPage />
+    </Suspense>
+  );
 }

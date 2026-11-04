@@ -28,3 +28,6 @@ export function formatDue(value: string) {
   const days = Math.round(hours / 24);
   return days <= 1 ? "due tomorrow" : `due in ${days} days`;
 }
+
+/** Display maths → inline maths, for short previews of Markdown passages. */
+export const inlineMaths = (t: string) => t.replace(/\$\$([\s\S]+?)\$\$/g, (_, m: string) => `$${m}$`);

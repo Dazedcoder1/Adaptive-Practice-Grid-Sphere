@@ -1,7 +1,5 @@
 import {
   BarChart3,
-  Bot,
-  BrainCircuit,
   CalendarClock,
   ClipboardList,
   FileText,
@@ -13,18 +11,6 @@ import {
 type Entry = { title: string; icon: LucideIcon; phase: string; description: string; capabilities: string[] };
 
 export const studentPlanned: Record<string, Entry> = {
-  tutor: {
-    title: "AI Tutor",
-    icon: Bot,
-    phase: "Phase 2",
-    description: "A tutor that guides your reasoning instead of handing you answers.",
-    capabilities: [
-      "Teach me \u00b7 Give a hint \u00b7 Solve with me",
-      "Test me \u00b7 Find my mistake",
-      "Answers grounded in approved learning material, with citations",
-      "Never decides your marks or mastery",
-    ],
-  },
   "mock-tests": {
     title: "Mock Tests",
     icon: ClipboardList,
@@ -83,19 +69,6 @@ export const adminPlanned: Record<string, Entry> = {
       "Marking schemes and negative marking",
       "Durations and fixed question sets",
       "Publish mock exams",
-    ],
-  },
-  ai: {
-    title: "AI & RAG",
-    icon: BrainCircuit,
-    phase: "Phase 2",
-    description: "Provider-independent AI configuration and retrieval management.",
-    capabilities: [
-      "Provider and model selection",
-      "API keys via secret storage",
-      "Document ingestion and chunking",
-      "Retrieval evaluation and prompt versions",
-      "Usage, cost limits and fallbacks",
     ],
   },
   adaptive: {
