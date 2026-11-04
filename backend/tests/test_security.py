@@ -77,3 +77,21 @@ def test_spoofed_forwarded_for_is_ignored_and_junk_does_not_crash(client):
         headers={"X-Forwarded-For": "not-an-ip, <script>"},
     )
     assert r.status_code == 201
+
+
+def test_rate_limiter_does_not_stall_when_redis_is_down(monkeypatch):
+    """Regression: with Redis stopped, every sign-in waited for a connection timeout."""
+    from app.modules.security import service
+
+    calls = []
+
+    class Down:
+        def pipeline(self):
+            calls.append(1)
+            raise ConnectionError("refused")
+
+    monkeypatch.setattr(service, "get_redis", lambda: Down())
+    monkeypatch.setattr(service, "_redis_down_until", 0.0)
+    for _ in range(5):
+        service.rate_limit("login:x", "10/60")  # fails open, never raises
+    assert len(calls) == 1  # tried Redis once, then skipped it
