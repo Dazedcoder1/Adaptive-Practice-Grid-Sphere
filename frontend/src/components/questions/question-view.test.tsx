@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { Markdown } from "./markdown";
+import type { QuestionContent, Response } from "@/types/learning";
 import { isComplete, QuestionView } from "./question-view";
 
 const options = [
@@ -32,7 +33,7 @@ describe("isComplete", () => {
     ],
     ["subjective", {}, { text: "because" }, true],
   ] as const)("%s %j %j → %s", (type, content, response, expected) => {
-    expect(isComplete(type, content, response)).toBe(expected);
+    expect(isComplete(type, content as QuestionContent, response as Response)).toBe(expected);
   });
 });
 

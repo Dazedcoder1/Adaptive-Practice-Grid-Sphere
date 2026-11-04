@@ -143,8 +143,10 @@ def test_refresh_token_reuse_revokes_whole_session(client, student):
     r = client.post("/api/v1/auth/refresh")  # legitimate rotation
     new_access = r.json()["access_token"]
 
-    client.cookies.set(COOKIE, stolen, path="/api/v1/auth")  # attacker replays the old token
-    replay = client.post("/api/v1/auth/refresh")
+    # The attacker replays the old token. Send only that cookie: leaving the rotated one in the
+    # jar would send two same-named cookies, and which one the server reads isn't defined.
+    client.cookies.clear()
+    replay = client.post("/api/v1/auth/refresh", headers={"Cookie": f"{COOKIE}={stolen}"})
     assert replay.status_code == 401
 
     # Every token in that login family is now dead — including the legitimate one.
