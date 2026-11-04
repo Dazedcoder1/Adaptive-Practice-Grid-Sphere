@@ -24,6 +24,7 @@ os.environ.update(
     JWT_SECRET="test-secret-test-secret-test-secret-123",
     ENVIRONMENT="test",
     EMAIL_BACKEND="console",
+    REQUIRE_EMAIL_VERIFICATION="true",  # full flow; see test_no_verification.py
     FRONTEND_URL="http://localhost:3000",
     CORS_ORIGINS="http://localhost:3000",
     R2_ACCOUNT_ID="",

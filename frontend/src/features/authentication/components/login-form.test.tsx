@@ -65,3 +65,14 @@ describe("LoginForm", () => {
     expect(await screen.findByRole("button", { name: "Resend verification email" })).toBeInTheDocument();
   });
 });
+
+describe("credentials never go in the URL", () => {
+  it("auth forms use POST, so a submit before JavaScript loads can't leak the password", async () => {
+    const { RegisterForm } = await import("./register-form");
+    for (const ui of [<LoginForm portal="student" key="l" />, <RegisterForm key="r" />]) {
+      const { container, unmount } = render(ui);
+      expect(container.querySelector("form")?.getAttribute("method")).toBe("post");
+      unmount();
+    }
+  });
+});

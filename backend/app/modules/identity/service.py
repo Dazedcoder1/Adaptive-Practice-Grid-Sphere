@@ -177,14 +177,34 @@ def register_student(db: Session, data: RegisterInput, ip: str | None) -> tuple[
                 ip_address=ip,
             )
         )
-    token = _issue_token(
-        db, user, TokenPurpose.VERIFY_EMAIL, timedelta(hours=settings.email_token_hours)
-    )
+    if settings.require_email_verification:
+        token = _issue_token(
+            db, user, TokenPurpose.VERIFY_EMAIL, timedelta(hours=settings.email_token_hours)
+        )
+        after: PostCommit = _verification_email(user, token)
+    else:
+        after = _activate_without_verification(db, user)
     emit(db, EventType.STUDENT_REGISTERED, "user", user.id, {"user_id": str(user.id)})
     audit.record(
         db, "user.registered", actor_user_id=user.id, target_type="user", target_id=user.id, ip=ip
     )
-    return user, _verification_email(user, token)
+    return user, after
+
+
+def _activate_without_verification(db: Session, user: User) -> PostCommit:
+    """Email verification is switched off (REQUIRE_EMAIL_VERIFICATION=false): adults become
+    active at once. Minors still need guardian consent, which is a legal requirement, so
+    the consent request goes to the guardian straight away."""
+    db.flush()  # sessions don't autoflush: make a just-added profile visible to the query
+    profile = db.scalar(select(StudentProfile).where(StudentProfile.user_id == user.id))
+    if profile is None:
+        raise RuntimeError(f"student profile missing for user {user.id}")  # fail closed
+    if profile.is_minor:
+        user.status = UserStatus.PENDING_CONSENT
+        token = _issue_token(db, user, TokenPurpose.GUARDIAN_CONSENT, timedelta(days=7))
+        return _guardian_email(profile.guardian_email or "", profile.display_name, token)
+    user.status = UserStatus.ACTIVE
+    return lambda: None
 
 
 def resend_verification(db: Session, email: str) -> PostCommit | None:
@@ -321,6 +341,9 @@ def login(
             "bad_credentials",
             Unauthorized("Incorrect email or password.", code="invalid_credentials"),
         )
+    if user.status == UserStatus.PENDING_VERIFICATION and not settings.require_email_verification:
+        # Accounts created while verification was required can sign in once it's turned off.
+        _activate_without_verification(db, user)()
     if user.status in _STATUS_ERRORS:
         code, msg = _STATUS_ERRORS[user.status]
         raise fail(code, Forbidden(msg, code=code))

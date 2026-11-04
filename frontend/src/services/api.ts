@@ -9,7 +9,8 @@
 import { useAuthStore } from "@/stores/auth";
 import type { ApiErrorBody, TokenResponse } from "@/types/api";
 
-export const API_URL = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000").replace(/\/$/, "");
+/** Empty = same origin (Next.js proxies /api/v1 to the backend; see next.config.ts). */
+export const API_URL = (process.env.NEXT_PUBLIC_API_URL ?? "").replace(/\/$/, "");
 const PREFIX = "/api/v1";
 
 export class ApiError extends Error {

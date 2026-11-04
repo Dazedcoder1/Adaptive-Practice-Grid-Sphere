@@ -52,7 +52,7 @@ docs/operations.md    admins, migrations, backups/restore, background jobs, secu
 ## Setup
 
 `.env` at the repo root is read by the backend and Docker Compose (copy `.env.example`).
-`frontend/.env.local` sets `NEXT_PUBLIC_API_URL`.
+`frontend/.env.local` sets `API_PROXY_TARGET` — the browser calls `/api/v1` on the web app's own origin and Next.js forwards it to the backend (Nginx does this in production).
 
 ### Docker (everything)
 

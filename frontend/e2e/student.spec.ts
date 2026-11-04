@@ -14,7 +14,7 @@ test("student registers, verifies, signs in, edits profile and signs out", async
   await page.getByLabel("Confirm password").fill(PASSWORD);
   await page.getByRole("checkbox").check();
   await page.getByRole("button", { name: "Create account" }).click();
-  await expect(page.getByText("Check your inbox")).toBeVisible();
+  await expect(page.getByText(/We sent a verification link/)).toBeVisible();
 
   // Signing in before verifying is refused with a way to resend.
   await page.goto("/login");
@@ -68,7 +68,7 @@ test("minor needs guardian consent before signing in", async ({ page, request })
   await page.getByLabel("Parent or guardian's email").fill(guardian);
   await page.getByRole("checkbox").check();
   await page.getByRole("button", { name: "Create account" }).click();
-  await expect(page.getByText(/parent or guardian to ask for their consent/)).toBeVisible();
+  await expect(page.getByText(/We sent a verification link/)).toBeVisible();
 
   await page.goto(await emailedLink(request, email, "/verify-email"));
   await expect(page.getByText(/asked your parent or guardian/)).toBeVisible();

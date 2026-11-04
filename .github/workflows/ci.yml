@@ -92,7 +92,7 @@ jobs:
       JWT_SECRET: ci-secret-ci-secret-ci-secret-ci-secret
       ENVIRONMENT: test # mounts the test-only email inbox the E2E tests read
       EMAIL_BACKEND: console
-      NEXT_PUBLIC_API_URL: http://localhost:8000
+      REQUIRE_EMAIL_VERIFICATION: "true" # E2E covers the full verification flow
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

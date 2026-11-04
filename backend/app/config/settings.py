@@ -44,6 +44,9 @@ class Settings(BaseSettings):
     access_token_minutes: int = 15
     refresh_token_days: int = 30
     refresh_cookie_name: str = "al_refresh"
+    # Off for now: new students are active straight away. Set REQUIRE_EMAIL_VERIFICATION=true
+    # to require clicking an emailed link before the first sign-in.
+    require_email_verification: bool = False
     email_token_hours: int = 24
     reset_token_minutes: int = 30
     policy_version: str = "2026-11-01"  # bump when terms/privacy change; recorded with consent
