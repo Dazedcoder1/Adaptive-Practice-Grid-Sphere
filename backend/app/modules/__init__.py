@@ -5,10 +5,12 @@ from fastapi import APIRouter
 from app.modules.academic.router import router as academic
 from app.modules.adaptive.router import router as adaptive
 from app.modules.administration.router import router as administration
+from app.modules.ai_tutor.admin_router import router as ai_admin
 from app.modules.ai_tutor.router import router as ai_tutor
 from app.modules.analytics.router import router as analytics
 from app.modules.assessment.router import router as assessment
 from app.modules.audit.router import router as audit
+from app.modules.curriculum.admin_router import router as curriculum_admin
 from app.modules.curriculum.router import router as curriculum
 from app.modules.error_notebook.router import router as error_notebook
 from app.modules.gamification.router import router as gamification
@@ -18,7 +20,7 @@ from app.modules.learning_content.router import router as learning_content
 from app.modules.notifications.router import router as notifications
 from app.modules.practice.router import router as practice
 from app.modules.question_bank.router import router as question_bank
-from app.modules.rag.router import router as rag
+from app.modules.rag.admin_router import router as rag_admin
 from app.modules.revision.router import router as revision
 from app.modules.security.router import router as security
 from app.modules.users.router import router as users
@@ -29,10 +31,12 @@ for r in (
     adaptive,
     administration,
     ai_tutor,
+    ai_admin,
     analytics,
     assessment,
     audit,
     curriculum,
+    curriculum_admin,
     error_notebook,
     gamification,
     identity,
@@ -41,7 +45,7 @@ for r in (
     notifications,
     practice,
     question_bank,
-    rag,
+    rag_admin,
     revision,
     security,
     users,

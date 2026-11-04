@@ -8,7 +8,7 @@ from fastapi import APIRouter, BackgroundTasks, Cookie, Request, Response, statu
 from app.config.database import DbSession, transaction
 from app.config.settings import settings
 from app.modules.identity import service
-from app.modules.identity.models import AuthSession, User
+from app.modules.identity.models import AuthSession, User, UserStatus
 from app.modules.identity.schemas import (
     AuthUser,
     ChangePasswordRequest,
@@ -98,8 +98,16 @@ def register(body: RegisterRequest, request: Request, db: DbSession, bg: Backgro
     return RegisterResponse(
         user_id=user.id,
         status=user.status.value,
-        message="Account created. Check your email to verify your address.",
+        message=_REGISTERED_MESSAGES.get(user.status, "Account created."),
     )
+
+
+_REGISTERED_MESSAGES = {
+    UserStatus.ACTIVE: "Account created. You can sign in now.",
+    UserStatus.PENDING_VERIFICATION: "Account created. Check your email to verify your address.",
+    UserStatus.PENDING_CONSENT: "Account created. We've emailed your parent or guardian for "
+    "consent — you can sign in once they approve.",
+}
 
 
 @router.post("/verify-email", response_model=MessageResponse)

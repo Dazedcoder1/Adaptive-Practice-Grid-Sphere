@@ -15,7 +15,9 @@ celery_app = Celery(
         "app.workers.attempt",
         "app.workers.mastery",
         "app.workers.revision",
+        "app.workers.notebook",
         "app.workers.analytics",
+        "app.workers.ai",
     ],
 )
 
@@ -39,6 +41,7 @@ celery_app.conf.update(
     beat_schedule={
         "outbox-relay": {"task": "app.workers.outbox.relay", "schedule": 2.0},
         "revision-daily-due": {"task": "app.workers.revision.mark_due", "schedule": 3600.0},
+        "ai-purge-conversations": {"task": "ai.purge_conversations", "schedule": 86400.0},
     },
 )
 

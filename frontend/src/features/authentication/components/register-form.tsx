@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { AlertCircle, MailCheck } from "lucide-react";
+import { AlertCircle, CheckCircle2, MailCheck } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
@@ -18,7 +18,7 @@ import { register as registerApi } from "../api";
 import { type RegisterValues, registerSchema } from "../schemas";
 
 export function RegisterForm() {
-  const [done, setDone] = useState<{ email: string; minor: boolean } | null>(null);
+  const [done, setDone] = useState<{ email: string; status: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const form = useForm<RegisterValues>({
     resolver: zodResolver(registerSchema),
@@ -38,8 +38,8 @@ export function RegisterForm() {
   async function onSubmit(v: RegisterValues) {
     setError(null);
     try {
-      await registerApi(v);
-      setDone({ email: v.email, minor: v.is_minor });
+      const r = await registerApi(v);
+      setDone({ email: v.email, status: r.status });
     } catch (e) {
       if (e instanceof ApiError) {
         for (const [field, msg] of Object.entries(e.fields)) {
@@ -52,26 +52,41 @@ export function RegisterForm() {
   }
 
   if (done) {
+    const active = done.status === "active";
     return (
       <Alert variant="success" className="p-5">
-        <MailCheck />
+        {active ? <CheckCircle2 /> : <MailCheck />}
         <div className="space-y-2">
-          <p className="font-medium">Check your inbox</p>
+          <p className="font-medium">{active ? "Account created" : "Almost there"}</p>
           <p className="text-muted-foreground">
-            We sent a verification link to <strong className="text-foreground">{done.email}</strong>.
-            {done.minor &&
-              " After you verify, we'll email your parent or guardian to ask for their consent — you can sign in once they approve."}
+            {active ? (
+              <>
+                You can sign in now as <strong className="text-foreground">{done.email}</strong>.
+              </>
+            ) : done.status === "pending_consent" ? (
+              "We've emailed your parent or guardian to ask for their consent — you can sign in once they approve."
+            ) : (
+              <>
+                We sent a verification link to <strong className="text-foreground">{done.email}</strong>.
+              </>
+            )}
           </p>
-          <Link href="/login" className="text-primary inline-block font-medium hover:underline">
-            Go to sign in
-          </Link>
+          {active ? (
+            <Button asChild variant="gradient">
+              <Link href="/login">Sign in</Link>
+            </Button>
+          ) : (
+            <Link href="/login" className="text-primary inline-block font-medium hover:underline">
+              Go to sign in
+            </Link>
+          )}
         </div>
       </Alert>
     );
   }
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" noValidate>
+    <form method="post" onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" noValidate>
       {error && (
         <Alert variant="destructive">
           <AlertCircle /> {error}

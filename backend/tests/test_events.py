@@ -26,7 +26,8 @@ def sent(monkeypatch):
 
 def _emit(db) -> uuid.UUID:
     with transaction(db):
-        ev = emit(db, EventType.QUESTION_ANSWERED, "attempt", "a1", {"concept_ids": [1]})
+        # An ungraded answer: every consumer runs and records it, without touching mastery.
+        ev = emit(db, EventType.QUESTION_ANSWERED, "attempt", "a1", {"evaluation": "ungraded"})
     return ev.id
 
 
@@ -40,11 +41,11 @@ def test_event_is_not_visible_if_the_business_transaction_rolls_back(db):
 def test_relay_fans_out_once_and_consumers_are_idempotent(db, sent):
     event_id = _emit(db)
     assert outbox.relay.apply().get() == 1
-    assert sorted(n.split(".")[-2] for n in sent) == ["analytics", "mastery", "revision"]
+    assert sorted(n.split(".")[-2] for n in sent) == ["mastery", "notebook", "revision"]
     assert outbox.relay.apply().get() == 0  # already published
 
     celery_app.tasks["app.workers.mastery.on_question_answered"].apply(
-        args=[str(event_id), {}], throw=True
+        args=[str(event_id), {"evaluation": "ungraded"}], throw=True
     )  # redelivery
     assert db.scalar(select(func.count()).select_from(ProcessedEvent)) == 3
 

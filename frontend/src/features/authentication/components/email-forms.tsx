@@ -37,7 +37,7 @@ export function ForgotPasswordForm() {
     );
   }
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" noValidate>
+    <form method="post" onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" noValidate>
       {error && (
         <Alert variant="destructive">
           <AlertCircle /> {error}
@@ -76,7 +76,7 @@ export function ResetPasswordForm() {
   }
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" noValidate>
+    <form method="post" onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" noValidate>
       {error && (
         <Alert variant="destructive">
           <AlertCircle /> {error}

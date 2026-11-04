@@ -1,10 +1,8 @@
 import type { Metadata } from "next";
-import { PlannedFeature } from "@/components/feedback/planned-feature";
-import { adminPlanned } from "@/features/planned/catalog";
+import { AiOverviewPage } from "@/features/admin/ai/overview";
 
-const entry = adminPlanned["ai"];
-export const metadata: Metadata = { title: entry.title };
+export const metadata: Metadata = { title: "AI & RAG" };
 
 export default function Page() {
-  return <PlannedFeature {...entry} />;
+  return <AiOverviewPage />;
 }

@@ -71,7 +71,7 @@ function ProfileCard({ profile }: { profile: StudentProfile }) {
 
   return (
     <Card>
-      <form onSubmit={form.handleSubmit((v) => save.mutate(v))} noValidate>
+      <form method="post" onSubmit={form.handleSubmit((v) => save.mutate(v))} noValidate>
         <CardHeader>
           <CardTitle>Personal profile</CardTitle>
           <CardDescription>We keep only what&apos;s needed to personalise your learning.</CardDescription>
@@ -126,7 +126,7 @@ function PasswordCard() {
   });
   return (
     <Card>
-      <form onSubmit={form.handleSubmit((v) => change.mutate(v))} noValidate>
+      <form method="post" onSubmit={form.handleSubmit((v) => change.mutate(v))} noValidate>
         <CardHeader>
           <CardTitle>Password</CardTitle>
           <CardDescription>Changing it signs out your other devices.</CardDescription>

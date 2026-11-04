@@ -14,7 +14,7 @@ test("student registers, verifies, signs in, edits profile and signs out", async
   await page.getByLabel("Confirm password").fill(PASSWORD);
   await page.getByRole("checkbox").check();
   await page.getByRole("button", { name: "Create account" }).click();
-  await expect(page.getByText("Check your inbox")).toBeVisible();
+  await expect(page.getByText(/We sent a verification link/)).toBeVisible();
 
   // Signing in before verifying is refused with a way to resend.
   await page.goto("/login");
@@ -30,16 +30,22 @@ test("student registers, verifies, signs in, edits profile and signs out", async
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password", { exact: true }).fill(PASSWORD);
   await page.getByRole("button", { name: "Sign in" }).click();
+  // New students set up their learning path first.
+  await expect(page).toHaveURL(/\/onboarding$/);
+  await page.getByRole("button", { name: /CBSE Class 11/ }).click();
+  await page.getByRole("button", { name: /Strengthen my basics/ }).click();
+  await page.getByRole("button", { name: "Start learning" }).click();
   await expect(page).toHaveURL(/\/dashboard$/);
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Asha");
-  await expect(page.getByText("No activity yet").first()).toBeVisible(); // no fabricated metrics
+  await expect(page.getByText("Questions attempted")).toBeVisible();
+  await expect(page.getByText("No sessions yet")).toBeVisible(); // no fabricated activity
 
   // Session survives a full reload (refresh cookie → new access token).
   await page.reload();
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Asha");
 
   // Planned modules are clearly labelled.
-  await page.getByRole("link", { name: /Practice/ }).click();
+  await page.getByRole("link", { name: /Mock Tests/ }).click();
   await expect(page.getByText(/Planned · Phase 1/)).toBeVisible();
 
   await page.goto("/profile");
@@ -68,7 +74,7 @@ test("minor needs guardian consent before signing in", async ({ page, request })
   await page.getByLabel("Parent or guardian's email").fill(guardian);
   await page.getByRole("checkbox").check();
   await page.getByRole("button", { name: "Create account" }).click();
-  await expect(page.getByText(/parent or guardian to ask for their consent/)).toBeVisible();
+  await expect(page.getByText(/We sent a verification link/)).toBeVisible();
 
   await page.goto(await emailedLink(request, email, "/verify-email"));
   await expect(page.getByText(/asked your parent or guardian/)).toBeVisible();
@@ -80,7 +86,7 @@ test("minor needs guardian consent before signing in", async ({ page, request })
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password", { exact: true }).fill(PASSWORD);
   await page.getByRole("button", { name: "Sign in" }).click();
-  await expect(page).toHaveURL(/\/dashboard$/);
+  await expect(page).toHaveURL(/\/onboarding$/);
 });
 
 test("landing page works on mobile @mobile", async ({ page }) => {

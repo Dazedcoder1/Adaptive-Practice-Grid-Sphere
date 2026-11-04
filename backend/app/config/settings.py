@@ -44,6 +44,9 @@ class Settings(BaseSettings):
     access_token_minutes: int = 15
     refresh_token_days: int = 30
     refresh_cookie_name: str = "al_refresh"
+    # Off for now: new students are active straight away. Set REQUIRE_EMAIL_VERIFICATION=true
+    # to require clicking an emailed link before the first sign-in.
+    require_email_verification: bool = False
     email_token_hours: int = 24
     reset_token_minutes: int = 30
     policy_version: str = "2026-11-01"  # bump when terms/privacy change; recorded with consent
@@ -56,6 +59,11 @@ class Settings(BaseSettings):
     smtp_username: str = ""
     smtp_password: str = ""
     smtp_starttls: bool = True
+
+    # Process outbox events in the API process right after commit, so mastery, revision and
+    # the error notebook update even when no Celery worker is running (local development).
+    # Set false in production and run the workers; the outbox + idempotency make both safe.
+    process_events_inline: bool = True
 
     # Rate limits ("count/seconds")
     rate_limit_login: str = "10/60"
@@ -70,11 +78,27 @@ class Settings(BaseSettings):
     r2_api_token: str = ""
     r2_public_url: str = ""
 
-    # AI (provider-agnostic; see app/integrations/llm.py)
+    # AI (provider-agnostic; see app/integrations/llm.py). Leave LLM_PROVIDER empty and the
+    # tutor runs in notes mode: it answers from approved study material without an LLM.
+    # Providers: openai | gemini | anthropic | openai_compatible (any OpenAI-style API).
     llm_provider: str = ""
     llm_api_key: str = ""
-    llm_model: str = ""
+    llm_model: str = ""  # blank = the provider's default in app/integrations/llm.py
+    llm_base_url: str = ""  # only for openai_compatible (e.g. a self-hosted server)
+    # Optional second provider, used when the first one errors or times out.
+    llm_fallback_provider: str = ""
+    llm_fallback_api_key: str = ""
+    llm_fallback_model: str = ""
+    llm_fallback_base_url: str = ""
+    llm_timeout_seconds: float = 45.0
+    # Embeddings for semantic search: openai | gemini | openai_compatible. Without them,
+    # retrieval uses keyword search only. EMBEDDING_API_KEY defaults to LLM_API_KEY when
+    # both use the same provider.
+    embedding_provider: str = ""
+    embedding_api_key: str = ""
     embedding_model: str = ""
+    embedding_base_url: str = ""
+    rag_max_upload_mb: int = 15
 
     @field_validator("database_url", "database_direct_url")
     @classmethod

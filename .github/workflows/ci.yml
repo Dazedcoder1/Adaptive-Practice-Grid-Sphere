@@ -22,7 +22,7 @@ jobs:
         working-directory: backend
     services:
       postgres:
-        image: postgres:16
+        image: pgvector/pgvector:pg16 # Postgres 16 with the vector extension
         env:
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: ap_test
@@ -77,7 +77,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres:16
+        image: pgvector/pgvector:pg16 # Postgres 16 with the vector extension
         env:
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: ap_e2e
@@ -92,7 +92,7 @@ jobs:
       JWT_SECRET: ci-secret-ci-secret-ci-secret-ci-secret
       ENVIRONMENT: test # mounts the test-only email inbox the E2E tests read
       EMAIL_BACKEND: console
-      NEXT_PUBLIC_API_URL: http://localhost:8000
+      REQUIRE_EMAIL_VERIFICATION: "true" # E2E covers the full verification flow
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -110,7 +110,8 @@ jobs:
         run: |
           pip install -r requirements.txt
           alembic upgrade head
-          nohup uvicorn app.main:app --port 8000 > api.log 2>&1 &
+          python -m scripts.seed_sample_content
+          nohup uvicorn app.main:app --host 127.0.0.1 --port 8000 > api.log 2>&1 &
       - name: Build and start web
         working-directory: frontend
         run: |
@@ -118,10 +119,19 @@ jobs:
           npx playwright install --with-deps chromium
           npm run build
           nohup npm start -- -p 3000 > web.log 2>&1 &
-          npx --yes wait-on -t 60000 http://localhost:3000 http://localhost:8000/api/v1/health
+          # 127.0.0.1, not localhost: Node resolves localhost to IPv6 (::1) first on the runners.
+          # http-get: wait-on probes with HEAD by default, and the health route only accepts GET.
+          npx --yes wait-on -t 60000 http-get://127.0.0.1:3000 http-get://127.0.0.1:8000/api/v1/health
       - name: Playwright
         working-directory: frontend
+        env:
+          E2E_API_URL: http://127.0.0.1:8000
         run: npm run test:e2e
+      - name: Server logs
+        if: failure()
+        run: |
+          echo "── API ──"; tail -n 80 backend/api.log || true
+          echo "── Web ──"; tail -n 40 frontend/web.log || true
       - if: failure()
         uses: actions/upload-artifact@v4
         with:

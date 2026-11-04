@@ -66,7 +66,36 @@ def platform_stats(db: Session) -> dict:
                 OutboxEvent.published_at.is_(None), OutboxEvent.dead_lettered_at.is_(None)
             ),
         ),
+        **_learning_stats(db, week),
         "generated_at": now,
+    }
+
+
+def _learning_stats(db: Session, week) -> dict:
+    from app.modules.curriculum.models import Concept
+    from app.modules.practice.models import PracticeSession, QuestionAttempt
+    from app.modules.question_bank.models import Question, QuestionConcept
+    from app.modules.question_bank.service import bank_stats
+
+    concepts = db.scalar(select(func.count()).select_from(Concept)) or 0
+    covered = (
+        db.scalar(
+            select(func.count(func.distinct(QuestionConcept.concept_id)))
+            .join(Question, Question.id == QuestionConcept.question_id)
+            .where(Question.published_version_id.is_not(None), Question.archived_at.is_(None))
+        )
+        or 0
+    )
+    return {
+        **bank_stats(db),
+        "practice_sessions_7d": _count(
+            db, select(PracticeSession.id).where(PracticeSession.created_at >= week)
+        ),
+        "questions_attempted_7d": _count(
+            db, select(QuestionAttempt.id).where(QuestionAttempt.created_at >= week)
+        ),
+        "concepts_total": concepts,
+        "concepts_with_questions": covered,
     }
 
 

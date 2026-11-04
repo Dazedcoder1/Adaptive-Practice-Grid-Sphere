@@ -47,7 +47,7 @@ export function LoginForm({ portal }: { portal: Portal }) {
   }
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" noValidate>
+    <form method="post" onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" noValidate>
       {params.get("reset") === "1" && !error && (
         <Alert variant="success">
           <MailCheck /> Password updated — sign in with your new password.
